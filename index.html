@@ -71,6 +71,26 @@ textarea{
 
 <textarea id="output" rows="10" style="width:100%;margin-top:10px;" placeholder="生成されたマークダウンがここに表示されます..."></textarea>
 
+<!-- 使用方法セクション -->
+<hr>
+<h2>📘 使用方法</h2>
+<ul>
+  <li><strong>タイトル入力：</strong> 画像プロンプトの主題を記入します。</li>
+  <li><strong>新しい行を追加：</strong> テキストを入力し、「セクション」または「要素」を選んで「追加」ボタン。</li>
+  <li><strong>チェックボックス：</strong> 出力に含める行だけを選択（ON）してください。</li>
+  <li><strong>クリック選択：</strong> 1行クリックで選択状態に。選択中の行の下に新しい行が追加されます。</li>
+  <li><strong>Ctrl+Cキー：</strong> 1行だけ選択されている状態で押すとその内容をコピーします。</li>
+  <li><strong>Deleteキー：</strong> 1行だけ選択されている状態で押すとその行を削除します。</li>
+  <li><strong>ドラッグ＆ドロップ：</strong> 行を上下にドラッグして順番を入れ替え可能です。</li>
+  <li><strong>保存：</strong> チェック状態を含む内容を txt ファイルに保存。タイトルと日時がファイル名に付きます。</li>
+  <li><strong>読み込み：</strong> 保存した txt ファイルを再読み込みできます。タイトルも自動入力されます。</li>
+  <li><strong>プロンプト生成：</strong> チェックされた行だけをマークダウン形式で生成・コピーします。</li>
+</ul>
+
+<!-- サンプルデータダウンロード -->
+<hr>
+<button id="download-sample-btn">📥 サンプルデータをダウンロード</button>
+<div id="copy-message" style="margin-top:20px; font-size:14px; color:green; display:none;"></div>
 <script>
 let lines=[];
 let selectedIndex = null;
@@ -233,22 +253,43 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
+document.getElementById('download-sample-btn').addEventListener('click', () => {
+    const sampleLines = [
+        '[x] # タイトル',
+        '[x] - たこ焼きを中心にした幻想的な風景',
+        '[x] # 主題',
+        '[x] - 巨大なたこ焼きが宙に浮かんでいるファンタジーの世界を描いてください。',
+        '[x] # 構図',
+        '[x] - たこ焼きは画面の中央に大きく配置してください。',
+        '[x] - 下部には草原や小道、奥には山と星空を背景にしてください。',
+        '[x] - カメラアングルはローアングル（見上げる視点）でお願いします。',
+        '[x] # スタイル',
+        '[x] - 日本の浮世絵風とジブリ風をミックスした画風。',
+        '[x] - 柔らかいブラシと繊細な陰影表現。',
+        '[x] - 水彩調のテクスチャを感じさせてください。',
+        '[x] # 配色',
+        '[x] - メインカラー：夕焼けのような赤とオレンジ',
+        '[x] - サブカラー：青と紫のグラデーション',
+        '[x] - 光源はたこ焼きの内部から発光しているように',
+        '[x] # 雰囲気・感情',
+        '[x] - 神秘的で温かみがあり、懐かしさを感じる世界。',
+        '[x] - 見る人が童心に帰るような感動を与えるイメージ。',
+        '[x] # 制約事項',
+        '[x] - リアルなたこ焼きの形を保ってください（トッピングも含めて）。',
+        '[x] - 現代的な人工物は登場させないでください。',
+        '[x] - 背景には人間や動物を含めないでください。',
+        '[ ] - 使用しないプロンプト'
+    ];
+    const blob = new Blob([sampleLines.join('\n')], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'sample_prompt.txt';
+    a.click();
+    URL.revokeObjectURL(url);
+});
+
 render();
 </script>
-<!-- 使用方法セクション -->
-<hr>
-<h2>📘 使用方法</h2>
-<ul>
-  <li><strong>タイトル入力：</strong> 画像プロンプトの主題を記入します。</li>
-  <li><strong>新しい行を追加：</strong> テキストを入力し、「セクション」または「要素」を選んで「追加」ボタン。</li>
-  <li><strong>チェックボックス：</strong> 出力に含める行だけを選択（ON）してください。</li>
-  <li><strong>クリック選択：</strong> 1行クリックで選択状態に。選択中の行の下に新しい行が追加されます。</li>
-  <li><strong>Ctrl+Cキー：</strong> 1行だけ選択されている状態で押すとその内容をコピーします。</li>
-  <li><strong>Deleteキー：</strong> 1行だけ選択されている状態で押すとその行を削除します。</li>
-  <li><strong>ドラッグ＆ドロップ：</strong> 行を上下にドラッグして順番を入れ替え可能です。</li>
-  <li><strong>保存：</strong> チェック状態を含む内容を txt ファイルに保存。タイトルと日時がファイル名に付きます。</li>
-  <li><strong>読み込み：</strong> 保存した txt ファイルを再読み込みできます。タイトルも自動入力されます。</li>
-  <li><strong>プロンプト生成：</strong> チェックされた行だけをマークダウン形式で生成・コピーします。</li>
-</ul>
 </body>
 </html>
