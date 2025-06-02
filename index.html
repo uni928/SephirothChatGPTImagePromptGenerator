@@ -221,6 +221,16 @@ document.addEventListener('keydown', (e) => {
           selectedIndex = null;
           render();
       }
+
+    // Ctrl + C：選択行の中身（# / - 除去）をコピー
+    if (e.key === 'c' && e.ctrlKey && selectedIndex !== null) {
+        const raw = lines[selectedIndex].text;
+        const cleaned = raw.replace(/^[-#]\s*/, '').trim();
+        navigator.clipboard.writeText(cleaned).then(() => {
+            console.log('選択行をコピーしました:', cleaned);
+        });
+        e.preventDefault();
+    }
 });
 
 render();
@@ -233,6 +243,7 @@ render();
   <li><strong>新しい行を追加：</strong> テキストを入力し、「セクション」または「要素」を選んで「追加」ボタン。</li>
   <li><strong>チェックボックス：</strong> 出力に含める行だけを選択（ON）してください。</li>
   <li><strong>クリック選択：</strong> 1行クリックで選択状態に。選択中の行の下に新しい行が追加されます。</li>
+  <li><strong>Ctrl+Cキー：</strong> 1行だけ選択されている状態で押すとその内容をコピーします。</li>
   <li><strong>Deleteキー：</strong> 1行だけ選択されている状態で押すとその行を削除します。</li>
   <li><strong>ドラッグ＆ドロップ：</strong> 行を上下にドラッグして順番を入れ替え可能です。</li>
   <li><strong>保存：</strong> チェック状態を含む内容を txt ファイルに保存。タイトルと日時がファイル名に付きます。</li>
