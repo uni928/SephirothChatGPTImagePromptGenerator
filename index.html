@@ -160,10 +160,12 @@ addBtn.addEventListener('click',()=>{
     render();
 });
 
-generateBtn.addEventListener('click',()=>{
-    const md=lines.filter(l=>l.checked).map(l=>l.text).join('\n');
-    outputTA.value=md;
-    navigator.clipboard.writeText(md).then(()=>alert('クリップボードにコピーしました！'));
+generateBtn.addEventListener('click', () => {
+    let md = lines.filter(l => l.checked).map(l => l.text).join('\n');
+    // 先頭以外の # の前に改行を入れる
+    md = md.replace(/(?!^)(#)/g, '\n$1');
+    outputTA.value = md;
+    navigator.clipboard.writeText(md).then(() => alert('クリップボードにコピーしました！'));
 });
 
 saveBtn.addEventListener('click',()=>{
