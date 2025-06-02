@@ -243,14 +243,25 @@ document.addEventListener('keydown', (e) => {
       }
 
     // Ctrl + C：選択行の中身（# / - 除去）をコピー
-    if (e.key === 'c' && e.ctrlKey && selectedIndex !== null) {
-        const raw = lines[selectedIndex].text;
-        const cleaned = raw.replace(/^[-#]\s*/, '').trim();
-        navigator.clipboard.writeText(cleaned).then(() => {
-            console.log('選択行をコピーしました:', cleaned);
-        });
-        e.preventDefault();
-    }
+      if (e.key === 'c' && e.ctrlKey && selectedIndex !== null) {
+          const raw = lines[selectedIndex].text;
+          const cleaned = raw.replace(/^[-#]\s*/, '').trim();
+
+          // ① クリップボードにコピー
+          navigator.clipboard.writeText(cleaned).then(() => {
+          // ② 成功したらメッセージ表示
+              const msg = document.getElementById('copy-message');
+              msg.style.display = 'block';
+              msg.textContent = '✅ 選択中のテキストをコピー＆入力欄に貼り付けました。';
+              setTimeout(() => { msg.style.display = 'none'; }, 2000);
+          });
+
+          // ③ 入力欄に貼り付け
+          const input = document.getElementById('new-line');
+          if (input) input.value = cleaned;
+
+          e.preventDefault(); // デフォルトの Ctrl+C をキャンセル
+      }
 });
 
 document.getElementById('download-sample-btn').addEventListener('click', () => {
