@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>SephirothChatGPTImagePromptGenerator</title>
+<style>
+body{
+    font-family: sans-serif;
+    margin:20px;
+}
+h1{
+    margin-top:0;
+}
+#controls{
+    margin-bottom:1rem;
+}
+#prompt-list{
+    border:1px solid #aaa;
+    padding:10px;
+    max-height:300px;
+    overflow-y:auto;
+    list-style:none;
+}
+li.section{
+    font-weight:bold;
+}
+li{
+    cursor: pointer;
+    user-select: none;
+    margin-bottom:4px;
+    padding: 2px 4px;
+}
+li.selected{
+    background-color: #cde8ff;
+}
+button{
+    margin-right:5px;
+    margin-top:5px;
+}
+input[type="text"]{
+    padding:4px 6px;
+    font-size:14px;
+}
+textarea{
+    font-size:14px;
+    padding:6px;
+}
+</style>
+</head>
+<body>
+<h1>ChatGPT の画像生成のプロンプトを効率的に生成するためのサイト</h1>
+
+<div id="controls">
+    <div style="margin-bottom:10px;">
+        <label>タイトル：<input id="title-input" type="text" placeholder="タイトルを入力..." size="30"></label>
+    </div>
+    <input id="new-line" type="text" placeholder="新しい行を入力..." size="40">
+    <label><input type="radio" name="kind" value="section" checked> セクション (#)</label>
+    <label><input type="radio" name="kind" value="item"> 要素 (-)</label>
+    <button id="add-btn">追加</button>
+</div>
+
+<ul id="prompt-list"></ul>
+
+<div>
+    <button id="generate-btn">プロンプトを生成してコピー</button>
+    <button id="save-btn">進捗を保存</button>
+    <input type="file" id="load-file" accept=".txt" style="display:none">
+    <button id="load-btn">進捗を読み込み</button>
+</div>
+
+<textarea id="output" rows="10" style="width:100%;margin-top:10px;" placeholder="生成されたマークダウンがここに表示されます..."></textarea>
+
+<script>
+let lines=[];
+let selectedIndex = null;
+
+const listEl = document.getElementById('prompt-list');
+const newLineInput=document.getElementById('new-line');
+const addBtn=document.getElementById('add-btn');
+const generateBtn=document.getElementById('generate-btn');
+const outputTA=document.getElementById('output');
+const saveBtn=document.getElementById('save-btn');
+const loadBtn=document.getElementById('load-btn');
+const loadFileInput=document.getElementById('load-file');
+const titleInput=document.getElementById('title-input');
+
+function render(){
+    listEl.innerHTML='';
+    lines.forEach((line,idx)=>{
+        const li=document.createElement('li');
+        li.className = line.text.startsWith('#') ? 'section' : '';
+        if (selectedIndex === idx) li.classList.add('selected');
+        li.draggable = true;
+        li.dataset.index = idx;
+
+        const cb=document.createElement('input');
+        cb.type='checkbox';
+        cb.checked=line.checked;
+        cb.addEventListener('change',()=>{line.checked=cb.checked;});
+        li.appendChild(cb);
+
+        const span=document.createElement('span');
+        span.textContent=' '+line.text;
+        li.appendChild(span);
+
+        // ドラッグ
+        li.addEventListener('dragstart',e=>{
+            e.dataTransfer.setData('text/plain', idx);
+            li.style.opacity = '0.5';
+        });
+        li.addEventListener('dragend',()=>{
+            li.style.opacity = '';
+        });
+        li.addEventListener('dragover',e=>{
+            e.preventDefault();
+            li.style.border = '1px dashed #000';
+        });
+        li.addEventListener('dragleave',()=>{
+            li.style.border = '';
+        });
+        li.addEventListener('drop',e=>{
+            e.preventDefault();
+            li.style.border = '';
+            const from = +e.dataTransfer.getData('text/plain');
+            const to = +li.dataset.index;
+            if (from !== to) {
+                const moved = lines.splice(from, 1)[0];
+                lines.splice(to, 0, moved);
+                selectedIndex = null;
+                render();
+            }
+        });
+
+        // クリックで選択
+        li.addEventListener('click', ()=>{
+            if (event.target.tagName.toLowerCase() === 'input') return;
+            selectedIndex = selectedIndex === idx ? null : idx;
+            render();
+        });
+
+        listEl.appendChild(li);
+    });
+}
+
+addBtn.addEventListener('click',()=>{
+    const txt=newLineInput.value.trim();
+    if(!txt) return;
+    const kind=document.querySelector('input[name="kind"]:checked').value;
+    const lineText = kind==='section' ? '# '+txt : '- '+txt;
+    const newLine = {text:lineText, checked:true};
+    if (selectedIndex !== null) {
+        lines.splice(selectedIndex + 1, 0, newLine);
+        selectedIndex++;
+    } else {
+        lines.push(newLine);
+        selectedIndex = lines.length - 1;
+    }
+    newLineInput.value='';
+    render();
+});
+
+generateBtn.addEventListener('click',()=>{
+    const md=lines.filter(l=>l.checked).map(l=>l.text).join('\n');
+    outputTA.value=md;
+    navigator.clipboard.writeText(md).then(()=>alert('クリップボードにコピーしました！'));
+});
+
+saveBtn.addEventListener('click',()=>{
+    const content=lines.map(l=>(l.checked?'[x] ':'[ ] ')+l.text).join('\n');
+    const now=new Date();
+    const yyyy=now.getFullYear();
+    const mm=('0'+(now.getMonth()+1)).slice(-2);
+    const dd=('0'+now.getDate()).slice(-2);
+    const hh=('0'+now.getHours()).slice(-2);
+    const mi=('0'+now.getMinutes()).slice(-2);
+    const ss=('0'+now.getSeconds()).slice(-2);
+    const title=titleInput.value.trim().replace(/\s+/g,'_');
+    const filename=`${yyyy}${mm}${dd}_${hh}${mi}${ss}_${title || 'untitled'}.txt`;
+    const blob=new Blob([content],{type:'text/plain'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;
+    a.download=filename;
+    a.click();
+    URL.revokeObjectURL(url);
+});
+
+loadBtn.addEventListener('click',()=>{loadFileInput.click();});
+loadFileInput.addEventListener('change',e=>{
+    const file=e.target.files[0];
+    if(!file) return;
+
+    const name = file.name.replace(/\.txt$/, '');
+    const parts = name.split('_');
+    if (parts.length >= 3) {
+        const extractedTitle = parts.slice(2).join('_');
+        titleInput.value = extractedTitle.replace(/_/g, ' ');
+    }
+
+    const reader=new FileReader();
+    reader.onload=ev=>{
+        const text=ev.target.result;
+        lines=text.split(/\r?\n/).filter(Boolean).map(line=>{
+            const checked=line.startsWith('[x]');
+            const content=line.slice(4);
+            return {text:content.trim(), checked};
+        });
+        selectedIndex = null;
+        render();
+    };
+    reader.readAsText(file);
+    loadFileInput.value='';
+});
+
+document.addEventListener('keydown', (e) => {
+      if (e.key === 'Delete' && selectedIndex !== null) {
+          lines.splice(selectedIndex, 1);
+          selectedIndex = null;
+          render();
+      }
+});
+
+render();
+</script>
+</body>
+</html>
